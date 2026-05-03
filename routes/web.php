@@ -1,26 +1,51 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 
-// HOME
+/* HOME → redirect ke login */
 Route::get('/', function () {
-    return view('home');
+    return redirect('/login');
 });
 
-// FORM PENDAFTARAN
-Route::get('/daftar', function () {
-    return view('daftar');
+/* ================= LOGIN ================= */
+Route::get('/login', function () {
+    return view('login');
 });
 
-Route::post('/daftar', function () {
-    return back()->with('success', 'Pendaftaran berhasil!');
+Route::post('/login', function (Request $request) {
+
+    if ($request->email == 'admin@gmail.com' && $request->password == '123') {
+
+        // SESSION
+        session([
+            'login' => true,
+            'email' => $request->email
+        ]);
+
+        // COOKIE
+        if ($request->has('remember')) {
+            cookie()->queue('email', $request->email, 60);
+        }
+
+        return redirect('/dashboard');
+    }
+
+    return back()->with('error', 'Email / Password salah!');
 });
 
-// FORM ASPIRASI
-Route::get('/aspirasi', function () {
-    return view('aspirasi');
+/* ================= DASHBOARD ================= */
+Route::get('/dashboard', function () {
+
+    if (!session('login')) {
+        return redirect('/login');
+    }
+
+    return view('dashboard');
 });
 
-Route::post('/aspirasi', function () {
-    return back()->with('success', 'Aspirasi berhasil dikirim!');
+/* ================= LOGOUT ================= */
+Route::get('/logout', function () {
+    session()->flush();
+    return redirect('/login');
 });
